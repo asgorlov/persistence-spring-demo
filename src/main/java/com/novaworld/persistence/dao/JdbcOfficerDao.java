@@ -3,6 +3,7 @@ package com.novaworld.persistence.dao;
 import com.novaworld.persistence.entity.Officer;
 import com.novaworld.persistence.entity.Rank;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
 
@@ -16,11 +17,17 @@ import java.util.Optional;
  * Date: 02.07.2020
  * Time: 16:30
  */
-@SuppressWarnings({"SqlNoDataSourceInspection", "ConstantCondition"})
+@SuppressWarnings({"SqlResolve", "SqlNoDataSourceInspection", "ConstantCondition"})
 @Repository
 public class JdbcOfficerDao implements OfficerDao {
     private final JdbcTemplate jdbcTemplate;
     private final SimpleJdbcInsert insertOfficer;
+
+    private final RowMapper<Officer> officerMapper =
+            (rs, rowNum) -> new Officer(rs.getInt("id"),
+                                Rank.valueOf(rs.getString("rank")),
+                                rs.getString("first_name"),
+                                rs.getString("last_name"));
 
     public JdbcOfficerDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -32,6 +39,7 @@ public class JdbcOfficerDao implements OfficerDao {
     @Override
     public Officer save(Officer officer) {
         Map<String, Object> parameters = new HashMap<>();
+        parameters.put("rank", officer.getRank());
         parameters.put("first_name", officer.getFirst());
         parameters.put("last_name", officer.getLast());
         Integer newId = (Integer) insertOfficer.executeAndReturnKey(parameters);
@@ -45,23 +53,13 @@ public class JdbcOfficerDao implements OfficerDao {
             return Optional.empty();
         }
         return Optional.ofNullable(jdbcTemplate.queryForObject(
-                "SELECT * FROM officers WHERE id=?",
-                (rs, rowNum) -> new Officer(rs.getInt("id"),
-                                    Rank.valueOf(rs.getString("rank")),
-                                    rs.getString("first_name"),
-                                    rs.getString("last_name")),
-                id)
+                "SELECT * FROM officers WHERE id=?", officerMapper, id)
         );
     }
 
     @Override
     public List<Officer> findAll() {
-        return jdbcTemplate.query("SELECT * FROM officers",
-                (rs, rowNum) -> new Officer(rs.getInt("id"),
-                        Rank.valueOf(rs.getString("rank")),
-                        rs.getString("first_name"),
-                        rs.getString("last_name"))
-        );
+        return jdbcTemplate.query("SELECT * FROM officers", officerMapper);
     }
 
     @Override
@@ -81,7 +79,7 @@ public class JdbcOfficerDao implements OfficerDao {
     @Override
     public boolean existById(Integer id) {
         return jdbcTemplate.queryForObject(
-                "SELECT EXISTS (SELECT 1 FROM officers WHERE id=?", Boolean.class, id
+                "SELECT EXISTS (SELECT 1 FROM officers WHERE id=?)", Boolean.class, id
         );
     }
 }
