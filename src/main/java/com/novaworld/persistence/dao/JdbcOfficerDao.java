@@ -17,7 +17,7 @@ import java.util.Optional;
  * Date: 02.07.2020
  * Time: 16:30
  */
-@SuppressWarnings({"SqlResolve", "SqlNoDataSourceInspection", "ConstantCondition"})
+@SuppressWarnings({"SqlNoDataSourceInspection", "ConstantCondition"})
 @Repository
 public class JdbcOfficerDao implements OfficerDao {
     private final JdbcTemplate jdbcTemplate;

@@ -1,5 +1,6 @@
 package com.novaworld.persistence.entity;
 
+import javax.persistence.*;
 import java.util.Objects;
 
 /**
@@ -7,10 +8,20 @@ import java.util.Objects;
  * Date: 02.07.2020
  * Time: 16:22
  */
+@Entity
+@Table(name = "officers")
 public class Officer {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    @Enumerated(EnumType.STRING)
     private Rank rank;
+
+    @Column(name = "first_name", nullable = false)
     private String first;
+
+    @Column(name = "last_name", nullable = false)
     private String last;
 
     public Officer() {}
